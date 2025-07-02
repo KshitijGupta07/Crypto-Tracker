@@ -9,7 +9,7 @@ export async function GET() {
     const data = await res.json();
     console.log(data)
     return NextResponse.json(data.results); // results is the array of news posts
-  } catch (error) {
+  } catch (_) {
     return NextResponse.json({ error: 'Failed to fetch news' }, { status: 500 });
   }
 }
