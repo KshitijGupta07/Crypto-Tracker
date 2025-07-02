@@ -1,33 +1,33 @@
 import mongoose from 'mongoose';
 
-const MONGODB_URI = process.env.MONGODB_URI;
-
-if (!MONGODB_URI) {
-  throw new Error('Please define the MONGODB_URI environment variable');
-}
-
 interface MongooseCache {
   conn: typeof mongoose | null;
   promise: Promise<typeof mongoose> | null;
 }
 
-// Use a global variable to store the cache across hot reloads in development
-let cached: MongooseCache;
-
-if (!(global as any).mongoose) {
-  (global as any).mongoose = {
-    conn: null,
-    promise: null,
-  };
+declare global {
+  var mongooseCache: MongooseCache | undefined;
 }
 
-cached = (global as any).mongoose;
+let cached: MongooseCache;
+
+if (!global.mongooseCache) {
+  global.mongooseCache = { conn: null, promise: null };
+}
+
+cached = global.mongooseCache;
 
 export async function connectDB() {
   if (cached.conn) return cached.conn;
 
   if (!cached.promise) {
-    cached.promise = mongoose.connect(MONGODB_URI!, {
+    const uri = process.env.MONGODB_URI;
+    if (!uri) {
+      throw new Error('Please define the MONGODB_URI environment variable');
+    }
+
+    cached.promise = mongoose.connect(uri, {
+      dbName: 'cryptoTracker',
       bufferCommands: false,
     });
   }
