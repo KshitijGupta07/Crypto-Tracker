@@ -1,5 +1,3 @@
-// /components/CryptoLive.tsx
-
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -52,10 +50,14 @@ export default function CryptoLive() {
           >
             <div className="flex items-center gap-4 mb-4">
               <Image
-                src={coin.image}
+                src={coin.image || '/fallback-coin.png'}
                 alt={coin.name}
                 width={48}
                 height={48}
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.src = '/fallback-coin.png';
+                }}
               />
               <div>
                 <h2 className="text-lg font-semibold text-gray-800">{coin.name}</h2>
