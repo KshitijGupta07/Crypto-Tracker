@@ -1,3 +1,5 @@
+// /app/account/page.tsx
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -10,55 +12,34 @@ interface User {
 }
 
 export default function AccountPage() {
-  const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
     async function fetchUser() {
-      const res = await fetch('/api/account');
-      if (res.status === 401) {
-        router.push('/login');
-        return;
-      }
+      try {
+        const res = await fetch('/api/account');
+        if (!res.ok) throw new Error('Unauthorized');
 
-      const data = await res.json();
-      setUser(data.user);
-      setLoading(false);
+        const data = await res.json();
+        setUser(data);
+      } catch (err) {
+        console.error(err);
+        router.push('/login');
+      }
     }
 
     fetchUser();
-  }, []);
+  }, [router]);
 
-  const handleLogout = async () => {
-    await fetch('/api/logout', { method: 'POST' });
-    router.push('/login');
-  };
-
-  if (loading) return <div className="p-10 text-xl">Loading account...</div>;
-  if (!user) return <div className="p-10 text-red-600">User data not found.</div>;
+  if (!user) return <div className="text-center mt-10 text-gray-700">Loading account...</div>;
 
   return (
-    <div className="max-w-3xl mx-auto mt-10 bg-white p-8 rounded shadow">
-      <h1 className="text-3xl font-bold mb-6">👤 My Account</h1>
-
-      <p className="text-lg mb-2">
-        <strong>Name:</strong> {user.name}
-      </p>
-      <p className="text-lg mb-2">
-        <strong>Email:</strong> {user.email}
-      </p>
-      <p className="text-lg mb-2">
-        <strong>Date of Birth:</strong>{' '}
-        {new Date(user.dateOfBirth).toLocaleDateString()}
-      </p>
-
-      <button
-        onClick={handleLogout}
-        className="mt-6 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-      >
-        Logout
-      </button>
+    <div className="max-w-xl mx-auto mt-10 bg-white shadow-md rounded-xl p-6">
+      <h1 className="text-2xl font-bold mb-4 text-gray-800">👤 Account Info</h1>
+      <p className="text-gray-700 mb-2">Name: {user.name}</p>
+      <p className="text-gray-700 mb-2">Email: {user.email}</p>
+      <p className="text-gray-700">Date of Birth: {user.dateOfBirth}</p>
     </div>
   );
 }
