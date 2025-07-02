@@ -1,38 +1,30 @@
-// lib/mongodb.ts
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 const MONGODB_URI = process.env.MONGODB_URI as string;
 
 if (!MONGODB_URI) {
-  throw new Error('Please define the MONGODB_URI environment variable');
+  throw new Error("Please define the MONGODB_URI environment variable");
 }
 
-/**
- * Global is used here to maintain a cached connection across hot reloads in development.
- * This prevents multiple connections from being created.
- */
-const cached = (global as any).mongoose;
+// Track cached connection without using `any`
+let cachedConnection: typeof mongoose | null = null;
+let cachedPromise: Promise<typeof mongoose> | null = null;
 
-if (!cached) {
-  cached = (global as any).mongoose = { conn: null, promise: null };
-}
+export async function connectDB(): Promise<typeof mongoose> {
+  if (cachedConnection) return cachedConnection;
 
-async function connectToDatabase() {
-  if (cached.conn) {
-    return cached.conn;
-  }
-
-  if (!cached.promise) {
-    cached.promise = mongoose.connect(MONGODB_URI, {
-      dbName: 'Crypto-Tracker', 
+  if (!cachedPromise) {
+    cachedPromise = mongoose.connect(MONGODB_URI, {
       bufferCommands: false,
-    }).then((mongoose) => {
-      return mongoose;
     });
   }
 
-  cached.conn = await cached.promise;
-  return cached.conn;
+  try {
+    cachedConnection = await cachedPromise;
+    console.log("✅ MongoDB connected");
+    return cachedConnection;
+  } catch (error) {
+    console.error("❌ MongoDB connection error:", error);
+    throw error;
+  }
 }
-
-export default connectToDatabase;
