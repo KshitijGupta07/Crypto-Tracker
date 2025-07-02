@@ -1,37 +1,38 @@
-// /lib/mongodb.ts
+// lib/mongodb.ts
+import mongoose from 'mongoose';
 
-import mongoose, { Connection } from 'mongoose';
+const MONGODB_URI = process.env.MONGODB_URI as string;
 
-interface MongooseCache {
-  conn: Connection | null;
-  promise: Promise<Connection> | null;
+if (!MONGODB_URI) {
+  throw new Error('Please define the MONGODB_URI environment variable');
 }
 
-declare global {
-  var mongooseCache: MongooseCache | undefined;
+/**
+ * Global is used here to maintain a cached connection across hot reloads in development.
+ * This prevents multiple connections from being created.
+ */
+const cached = (global as any).mongoose;
+
+if (!cached) {
+  cached = (global as any).mongoose = { conn: null, promise: null };
 }
 
-const globalCache = globalThis as typeof globalThis & {
-  mongooseCache?: MongooseCache;
-};
-
-// Initialize cache if it doesn't exist
-if (!globalCache.mongooseCache) {
-  globalCache.mongooseCache = { conn: null, promise: null };
-}
-
-const cached = globalCache.mongooseCache!;
-
-export async function connectDB() {
-  if (cached.conn) return cached.conn;
+async function connectToDatabase() {
+  if (cached.conn) {
+    return cached.conn;
+  }
 
   if (!cached.promise) {
-    const uri = process.env.MONGODB_URI;
-    if (!uri) throw new Error('Please define MONGODB_URI');
-
-    cached.promise = mongoose.connect(uri).then((m) => m.connection);
+    cached.promise = mongoose.connect(MONGODB_URI, {
+      dbName: 'Crypto-Tracker', 
+      bufferCommands: false,
+    }).then((mongoose) => {
+      return mongoose;
+    });
   }
 
   cached.conn = await cached.promise;
   return cached.conn;
 }
+
+export default connectToDatabase;
