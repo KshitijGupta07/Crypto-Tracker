@@ -1,10 +1,13 @@
-import { NextRequest, NextResponse } from 'next/server';
-import jwt from 'jsonwebtoken';
-import { connectDB } from '@/lib/mongodb';
-import { User } from 'models/Users';
+// /app/api/account/route.ts
 
-export async function GET(req: NextRequest) {
-   try {
+import { NextResponse } from 'next/server';
+import { connectDB } from '@/lib/mongodb';
+import { User } from '@/models/Users';
+import { cookies } from 'next/headers';
+import jwt from 'jsonwebtoken';
+
+export async function GET() {
+  try {
     await connectDB();
 
     const token = cookies().get('token')?.value;
@@ -13,7 +16,7 @@ export async function GET(req: NextRequest) {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { userId: string };
-    const user = await User.findById(decoded.userId).select('-password'); // Exclude password
+    const user = await User.findById(decoded.userId).select('-password');
 
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
