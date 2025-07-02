@@ -9,7 +9,7 @@ declare global {
   var mongooseCache: MongooseCache | undefined;
 }
 
-let cached: MongooseCache;
+const cached: MongooseCache;
 
 if (!global.mongooseCache) {
   global.mongooseCache = { conn: null, promise: null };
