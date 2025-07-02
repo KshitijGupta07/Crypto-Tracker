@@ -1,35 +1,35 @@
-import mongoose from 'mongoose';
+// /lib/mongodb.ts
+
+import mongoose, { Connection } from 'mongoose';
 
 interface MongooseCache {
-  conn: typeof mongoose | null;
-  promise: Promise<typeof mongoose> | null;
+  conn: Connection | null;
+  promise: Promise<Connection> | null;
 }
 
 declare global {
   var mongooseCache: MongooseCache | undefined;
 }
 
-const cached: MongooseCache;
+const globalCache = globalThis as typeof globalThis & {
+  mongooseCache?: MongooseCache;
+};
 
-if (!global.mongooseCache) {
-  global.mongooseCache = { conn: null, promise: null };
+// Initialize cache if it doesn't exist
+if (!globalCache.mongooseCache) {
+  globalCache.mongooseCache = { conn: null, promise: null };
 }
 
-cached = global.mongooseCache;
+const cached = globalCache.mongooseCache!;
 
 export async function connectDB() {
   if (cached.conn) return cached.conn;
 
   if (!cached.promise) {
     const uri = process.env.MONGODB_URI;
-    if (!uri) {
-      throw new Error('Please define the MONGODB_URI environment variable');
-    }
+    if (!uri) throw new Error('Please define MONGODB_URI');
 
-    cached.promise = mongoose.connect(uri, {
-      dbName: 'cryptoTracker',
-      bufferCommands: false,
-    });
+    cached.promise = mongoose.connect(uri).then((m) => m.connection);
   }
 
   cached.conn = await cached.promise;
