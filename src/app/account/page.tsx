@@ -1,45 +1,37 @@
-// /app/account/page.tsx
-
 'use client';
 
-import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-
-interface User {
-  name: string;
-  email: string;
-  dateOfBirth: string;
-}
+import { useEffect } from 'react';
 
 export default function AccountPage() {
-  const [user, setUser] = useState<User | null>(null);
   const router = useRouter();
 
-  useEffect(() => {
-    async function fetchUser() {
-      try {
-        const res = await fetch('/api/account');
-        if (!res.ok) throw new Error('Unauthorized');
+  // OPTIONAL: UseEffect to check login or redirect...
 
-        const data = await res.json();
-        setUser(data);
-      } catch (err) {
-        console.error(err);
-        router.push('/login');
-      }
-    }
+  const handleLogout = async () => {
+    // Call your logout API route
+    await fetch('/api/logout', { method: 'POST' });
 
-    fetchUser();
-  }, [router]);
-
-  if (!user) return <div className="text-center mt-10 text-gray-700">Loading account...</div>;
+    // Redirect to login or home page
+    router.push('/login');
+  };
 
   return (
-    <div className="max-w-xl mx-auto mt-10 bg-white shadow-md rounded-xl p-6">
-      <h1 className="text-2xl font-bold mb-4 text-gray-800">👤 Account Info</h1>
-      <p className="text-gray-700 mb-2">Name: {user.name}</p>
-      <p className="text-gray-700 mb-2">Email: {user.email}</p>
-      <p className="text-gray-700">Date of Birth: {user.dateOfBirth}</p>
+    <div className="p-6 max-w-md mx-auto bg-white rounded-xl shadow-md space-y-4 text-black">
+      <div className="flex items-center space-x-3">
+        <span className="text-2xl">👤</span>
+        <h1 className="text-2xl font-bold">Account Info</h1>
+      </div>
+      <p><strong>Name:</strong> Kshitij Gupta</p>
+      <p><strong>Email:</strong> kshitijvgupta@gmail.com</p>
+      <p><strong>Date of Birth:</strong> 2004-09-04</p>
+
+      <button
+        onClick={handleLogout}
+        className="mt-4 bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded"
+      >
+        Logout
+      </button>
     </div>
   );
 }
