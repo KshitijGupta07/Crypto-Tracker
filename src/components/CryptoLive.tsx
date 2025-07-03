@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Image from 'next/image';
 
 interface Coin {
   id: string;
@@ -26,7 +25,7 @@ export default function CryptoLive() {
         );
         const data = await res.json();
         setCoins(data);
-        setFilteredCoins(data);
+        setFilteredCoins(data); // Set initial filtered state
       } catch (error) {
         console.error('Failed to fetch coin data:', error);
       } finally {
@@ -54,7 +53,7 @@ export default function CryptoLive() {
     <div className="bg-white min-h-screen p-6">
       <h1 className="text-3xl font-bold text-center mb-8 text-gray-800">📊 Live Crypto Prices</h1>
 
-      {/* Search Bar */}
+      {/* ✅ Search Bar */}
       <input
         type="text"
         placeholder="Search for a coin..."
@@ -63,6 +62,7 @@ export default function CryptoLive() {
         className="w-full max-w-md mx-auto mb-6 p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 block"
       />
 
+      {/* Coins Grid */}
       {filteredCoins.length === 0 ? (
         <p className="text-center text-gray-500">No coins match your search.</p>
       ) : (
@@ -73,15 +73,15 @@ export default function CryptoLive() {
               className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm hover:bg-blue-100 hover:scale-[1.02] transition-transform duration-200"
             >
               <div className="flex items-center gap-4 mb-4">
-                <Image
-                  src={
-                    coin.image?.startsWith('http')
-                      ? coin.image
-                      : '/fallback-coin.png'
-                  }
+                <img
+                  src={coin.image}
                   alt={coin.name}
                   width={48}
                   height={48}
+                  className="rounded-full w-12 h-12 object-contain"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = '/fallback-coin.png';
+                  }}
                 />
                 <div>
                   <h2 className="text-lg font-semibold text-gray-800">{coin.name}</h2>
